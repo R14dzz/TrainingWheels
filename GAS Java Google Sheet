@@ -1,0 +1,60 @@
+// Move "On Hold" Row to the bottom of the table
+
+function onEdit(e) {
+  var sheet = e.source.getActiveSheet();
+  var editedCell = e.range;
+
+  // Modify "01MasterSheet" to the name of your sheet
+  if (sheet.getName() == "01MasterSheet" && editedCell.getColumn() == getColumnByName(sheet, "Status") && editedCell.getRow() > 1) {
+    var targetRow = editedCell.getRow();
+    var targetValue = editedCell.getValue();
+    
+    if (targetValue == "On Hold") {
+      moveRowToBottom(sheet, targetRow);
+    } else {
+      moveRowToTop(sheet, targetRow);
+    }
+  }
+
+  // Modify "01MasterSheet" and "MasterSheet" to the names of your sheets
+  if (sheet.getName() == "01MasterSheet" && editedCell.getColumn() == getColumnByName(sheet, "G") && editedCell.getRow() > 1) {
+    var targetRow = editedCell.getRow();
+    var targetValue = editedCell.getValue();
+    
+    copyDropdownList(targetValue, sheet, targetRow, getColumnByName(sheet, "G"), "MasterSheet", getColumnByName(sheet, "G"));
+  }
+}
+
+function getColumnByName(sheet, columnName) {
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var columnIndex = headers.indexOf(columnName);
+  return columnIndex + 1;
+}
+
+function moveRowToBottom(sheet, sourceRow) {
+  var lastRow = sheet.getLastRow();
+  var sourceRange = sheet.getRange(sourceRow, 1, 1, sheet.getLastColumn());
+  var targetRange = sheet.getRange(lastRow + 1, 1);
+  
+  sourceRange.moveTo(targetRange);
+  sheet.deleteRow(sourceRow);
+}
+
+function moveRowToTop(sheet, sourceRow) {
+  var targetRange = sheet.getRange(2, 1, 1, sheet.getLastColumn());
+  sheet.insertRowBefore(2);
+  var sourceRange = sheet.getRange(sourceRow + 1, 1, 1, sheet.getLastColumn());
+  
+  sourceRange.moveTo(targetRange);
+  sheet.deleteRow(sourceRow + 1);
+}
+
+function copyDropdownList(targetValue, targetSheet, targetRow, targetColumn, sourceSheetName, sourceColumn) {
+  var sourceSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sourceSheetName);
+  var sourceDataRange = sourceSheet.getRange(2, sourceColumn, sourceSheet.getLastRow() - 1, 1);
+  var sourceValues = sourceDataRange.getValues();
+  
+  var validationRule = SpreadsheetApp.newDataValidation().requireValueInList(sourceValues.flat()).build();
+  targetSheet.getRange(targetRow, targetColumn).setDataValidation(validationRule);
+  targetSheet.getRange(targetRow, targetColumn).setValue(targetValue);
+}
