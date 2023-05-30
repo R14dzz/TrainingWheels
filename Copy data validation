@@ -1,0 +1,26 @@
+// Copy data validation
+
+function copyDataValidation() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Define source and target sheets
+  var sourceSheet = ss.getSheetByName("MasterSheet");
+  var targetSheet = ss.getSheetByName("Barclays weekly TAM TS cases");
+
+  // Get the data validation rule from the source cell
+  var sourceRange = sourceSheet.getRange("G2");
+  var sourceDataValidation = sourceRange.getDataValidations()[0][0]; // Assuming only one data validation in the cell
+
+  // Get the last row with content in target sheet, column G
+  var lastRow = targetSheet.getLastRow();
+
+  // Apply the data validation rule to each cell in column G of target sheet
+  for(var i = 1; i <= lastRow; i++) {
+    var targetCell = targetSheet.getRange("G" + i);
+    // Check if the cell is not empty
+    if(targetCell.getValue() !== "") {
+      // Set the data validation rule
+      targetCell.setDataValidation(sourceDataValidation);
+    }
+  }
+}
